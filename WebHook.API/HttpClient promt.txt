@@ -53,6 +53,7 @@ It should be .net c# Http client application which has post endpoint for getting
         - string Description (Task card description part which later will be the promt for the AI model)
 
         - string Link (link to the trello card)
+These should be done by Project, Feature and Task repositories which incapsulate Dapper db context and use it for the CRUD operations
 
 6) create message record in the SQLiteDB CardRequestMessageQueue table which has next structure:
 
@@ -63,3 +64,6 @@ It should be .net c# Http client application which has post endpoint for getting
         - bool IsNew (true if it is new card, false if card was created previously and was updated)
 
         - int EntityId (foreign key from the table of which type card was created/updated)
+It should be done by CardRequestMessageQueueService which incapsulates Dapper db context and use it for the CRUD operations
+
+All the services should be implemented with best architectual and pattern designes and keep clead code principles

@@ -13,9 +13,9 @@ namespace WebHook.API.Controllers
     {
         private readonly AppDbContext _db;
         private readonly TrelloService _trello;
-        private readonly QueueService _queue;
+        private readonly CardRequestMessageQueueService _queue;
 
-        public WebHookController(AppDbContext db, TrelloService trello, QueueService queue)
+        public WebHookController(AppDbContext db, TrelloService trello, CardRequestMessageQueueService queue)
         {
             _db = db;
             _trello = trello;
@@ -174,20 +174,6 @@ namespace WebHook.API.Controllers
             if (name.Contains("[Project]", StringComparison.OrdinalIgnoreCase) || desc.Contains("Type:Project", StringComparison.OrdinalIgnoreCase)) return CardType.Project;
             if (name.Contains("[Feature]", StringComparison.OrdinalIgnoreCase) || desc.Contains("Type:Feature", StringComparison.OrdinalIgnoreCase)) return CardType.Feature;
             return CardType.Task;
-        }
-
-        private static string? ParseAliases(string desc)
-        {
-            // look for line starting with Aliases: a;b;c
-            var lines = desc?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
-            foreach (var line in lines)
-            {
-                if (line.TrimStart().StartsWith("Aliases:", StringComparison.OrdinalIgnoreCase))
-                {
-                    return line.Substring(line.IndexOf(':') + 1).Trim();
-                }
-            }
-            return null;
         }
 
         private int? FindProjectIdFromText(string text)

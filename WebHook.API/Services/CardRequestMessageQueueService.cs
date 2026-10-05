@@ -1,17 +1,15 @@
-using System.Text.Json;
 using Dapper;
-using Microsoft.Data.Sqlite;
 using WebHook.API.Models;
 using WebHook.API.Data;
 
 namespace WebHook.API.Services
 {
     // SQLite-backed queue: writes a record to CardRequestMessageQueue table.
-    public class QueueService
+    public class CardRequestMessageQueueService
     {
         private readonly AppDbContext _db;
 
-        public QueueService(AppDbContext db)
+        public CardRequestMessageQueueService(AppDbContext db)
         {
             _db = db;
         }

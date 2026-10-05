@@ -1,7 +1,5 @@
 using Dapper;
 using Microsoft.Data.Sqlite;
-using System.Data;
-using WebHook.API.Models;
 
 namespace WebHook.API.Data
 {
