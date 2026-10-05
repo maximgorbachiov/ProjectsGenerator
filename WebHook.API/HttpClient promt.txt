@@ -1,0 +1,65 @@
+implement next programming project:
+It should be .net c# Http client application which has post endpoint for getting web hook event from Trello application. Web hook event of Trello sends info about card which is created or updated. Then http client does next: 
+1) parses web hook event
+
+2) make get request for the card content to get more info 
+3) trying to understand which type of card was created/updated (project, feature, task) 
+4) how do this card connect to existing one (feature and task cards will contain either in metadata or inside body the ID/Alias of the project or the feature accordingly)
+
+5) create record in the SQLiteDB table. SQLiteDB will contain next tables:
+
+    a) Projects table with structure: 
+
+        - int ProjectId (primary key), 
+
+        - string CardId (id of the card from trello)
+
+        - string Name (Project name which will be used as a folder name)
+
+        - string Aliases (different aliases which will be defined in the Project card to be used as reference in Feature or Task cards later, they are connected through delimiter ;)
+
+        - string Description (Project card description part)
+
+        - string Link (link to the trello card)
+
+    b) Features table with structure:
+
+        - int FeatureId (primary key)
+
+        - int ProjectId (foreign key to the Project table)
+
+        - CardId (id of the card from trello)
+
+        - string Aliases (different aliases which will be defined in the Feature card to be used as reference in Task cards later, they are connected through delimiter ;)
+
+        - string Name (Feature card name)
+
+        - string Description (Feature card description part)
+
+        - string Link (link to the trello card)
+
+    c) Tasks table with structure:
+
+        - int TaskId (primary key)
+
+        - int FeatureId (foreign key to the Feature table)
+
+        - int ProjectId (foreign key to the Project table)
+
+        - string CardId (id of the card from trello)
+
+        - string Name (Task card name)
+
+        - string Description (Task card description part which later will be the promt for the AI model)
+
+        - string Link (link to the trello card)
+
+6) create message record in the SQLiteDB CardRequestMessageQueue table which has next structure:
+
+        - int CardRequestMessageId (primary key)
+
+        - enum CardType (enum with values: Project, Feature, Task)
+
+        - bool IsNew (true if it is new card, false if card was created previously and was updated)
+
+        - int EntityId (foreign key from the table of which type card was created/updated)

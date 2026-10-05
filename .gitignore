@@ -1,0 +1,80 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+artifacts/
+out/
+TestResults/
+
+# DotNet
+project.lock.json
+project.fragment.lock.json
+*.nupkg
+.packages/
+.nuget/packages/
+.dotnet/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NuGet
+# The packages folder can be ignored because of PackageRestore
+packages/
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.swp
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test output
+coverage/
+*.coverage
+coverage*.xml
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# JetBrains Rider
+/.idea/
+
+# DotCover
+*.dotCover
+
+# Entity Framework
+*.edmx.diagram
+
+# Azure
+*.publishsettings
+
+# Secrets
+secrets.json
+secrets.*.json
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# VS Installer
+*.vsix
