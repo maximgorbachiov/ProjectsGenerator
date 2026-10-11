@@ -1,19 +1,35 @@
-﻿namespace WebHook.API.Services
+﻿using WebHook.API.Data;
+using WebHook.API.Data.Repositories;
+using WebHook.API.HttpClients;
+using WebHook.API.Interfaces;
+using WebHook.API.Models;
+
+namespace WebHook.API.Services
 {
-    public class CardService
+    public abstract class CardService<T> : ICardService where T : Card
     {
-        protected string? ParseAliases(string desc)
+        protected readonly ILogger<CardService<T>> _logger;
+        protected readonly AppDbContext _db;
+        protected readonly TrelloService _trello;
+        protected readonly CardRequestMessageQueueService _queue;
+
+        public CardService(ILogger<CardService<T>> logger, 
+            AppDbContext db, 
+            TrelloService trello, 
+            CardRequestMessageQueueService queue)
         {
-            // look for line starting with Aliases: a;b;c
-            var lines = desc?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
-            foreach (var line in lines)
-            {
-                if (line.TrimStart().StartsWith("Aliases:", StringComparison.OrdinalIgnoreCase))
-                {
-                    return line.Substring(line.IndexOf(':') + 1).Trim();
-                }
-            }
-            return null;
+            _logger = logger;
+            _db = db;
+            _trello = trello;
+            _queue = queue;
+        }
+
+        public abstract Task<bool> ProcessCard(T card);
+
+        // non-generic adapter for DI factory usage
+        public async Task<bool> ProcessCard(Card card)
+        {
+            return await ProcessCard((T)card);
         }
     }
 }

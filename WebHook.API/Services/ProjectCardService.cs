@@ -1,51 +1,75 @@
-﻿using System.Text.Json;
-using WebHook.API.Data;
+﻿using WebHook.API.Data;
+using WebHook.API.Data.Repositories;
+using WebHook.API.Helpers;
+using WebHook.API.HttpClients;
 using WebHook.API.Models;
 
 namespace WebHook.API.Services
 {
-    public class ProjectCardService : CardService
+    public class ProjectCardService : CardService<ProjectCard>
     {
-        private readonly AppDbContext _db;
-        private readonly TrelloService _trello;
-        private readonly CardRequestMessageQueueService _queue;
-
-        public ProjectCardService(AppDbContext db, CardRequestMessageQueueService queue)
+        public ProjectCardService(ILogger<ProjectCardService> logger,
+            AppDbContext db,
+            TrelloService trello,
+            CardRequestMessageQueueService queue) : base(logger, db, trello, queue)
         {
-            _db = db;
-            _queue = queue;
+            
         }
 
-        public async Task<string> GetProjectCardIdAsync(string cardId)
+        public override async Task<bool> ProcessCard(ProjectCard projectCard)
         {
-            var card = await _trello.GetCardAsync(cardId) ?? default(JsonElement);
-
-            // Read fields
-            string name = card.TryGetProperty("name", out var n) ? n.GetString() ?? string.Empty : string.Empty;
-            string desc = card.TryGetProperty("desc", out var d) ? d.GetString() ?? string.Empty : string.Empty;
-            string link = card.TryGetProperty("shortUrl", out var l) ? l.GetString() ?? string.Empty : string.Empty;
-
-            var existing = await _db.Projects.GetByCardIdAsync(cardId);
-            if (existing != null)
+            if (projectCard == null)
             {
-                existing.Name = name;
-                existing.Description = desc;
-                existing.Link = link;
-                await _db.Projects.UpdateAsync(existing);
-                await _db.SaveChangesAsync();
-                await _queue.EnqueueAsync(new QueueMessage { Id = existing.ProjectId, CardType = CardType.Project, IsNew = false });
-                return cardId;
+                _logger.LogWarning("ProjectCard is null");
+                return false;
             }
 
-            // parse aliases from description header line Aliases:
-            var aliases = ParseAliases(desc);
+            if (projectCard.ProjectId <= 0)
+            {
+                _logger.LogWarning("ProjectCard.ProjectId is less or equal to 0");
+                return false;
+            }
 
-            var project = new ProjectEntity { CardId = cardId, Name = name, Description = desc, Aliases = aliases, Link = link };
+            var projectAliases = AliasesParser.FindProjectAliasFromText(projectCard.Description);
+
+            var existing = await _db.Projects.GetByProjectCardIdAsync(projectCard.ProjectId);
+            if (existing != null)
+            {
+                existing.Name = projectCard.Name;
+                existing.Description = projectCard.Description;
+                existing.Link = projectCard.Link;
+                existing.Aliases = projectAliases;
+                await _db.Projects.UpdateAsync(existing);
+                await _db.SaveChangesAsync();
+                await _queue.EnqueueAsync(new QueueMessage
+                {
+                    Id = existing.ProjectId,
+                    CardType = CardType.Project,
+                    IsNew = false
+                });
+                return true;
+            }
+
+            var project = new ProjectEntity
+            {
+                ProjectCardId = projectCard.ProjectId,
+                TrelloCardId = projectCard.TrelloCardId,
+                Name = projectCard.Name,
+                Description = projectCard.Description,
+                Aliases = aliases,
+                Link = projectCard.Link
+            };
+
             await _db.Projects.AddAsync(project);
             await _db.SaveChangesAsync();
-            await _queue.EnqueueAsync(new QueueMessage { Id = project.ProjectId, CardType = CardType.Project, IsNew = true });
+            await _queue.EnqueueAsync(new QueueMessage
+            {
+                Id = project.ProjectId,
+                CardType = CardType.Project,
+                IsNew = true
+            });
 
-            return cardId;
+            return true;
         }
     }
 }

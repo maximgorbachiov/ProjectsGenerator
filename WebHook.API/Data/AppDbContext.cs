@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.Data.Sqlite;
+using WebHook.API.Data.Repositories;
 
 namespace WebHook.API.Data
 {
@@ -13,15 +14,15 @@ namespace WebHook.API.Data
         public AppDbContext(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("Default") ?? "Data Source=webhook.db";
-            Projects = new Repositories.ProjectRepository(this);
-            Features = new Repositories.FeatureRepository(this);
-            Tasks = new Repositories.TaskRepository(this);
+            Projects = new ProjectRepository(this);
+            Features = new FeatureRepository(this);
+            Tasks = new TaskRepository(this);
             Database = new DatabaseFacade(this);
         }
 
-        public Repositories.ProjectRepository Projects { get; }
-        public Repositories.FeatureRepository Features { get; }
-        public Repositories.TaskRepository Tasks { get; }
+        public ProjectRepository Projects { get; }
+        public FeatureRepository Features { get; }
+        public TaskRepository Tasks { get; }
 
         public DatabaseFacade Database { get; }
 
@@ -46,7 +47,8 @@ namespace WebHook.API.Data
                 // Create tables if they don't exist. Keep schema simple and compatible with existing models.
                 conn.Execute(@"CREATE TABLE IF NOT EXISTS Projects (
                     ProjectId INTEGER PRIMARY KEY AUTOINCREMENT,
-                    CardId TEXT,
+                    ProjectCardId INTEGER,
+                    TrelloCardId TEXT,
                     Name TEXT,
                     Aliases TEXT,
                     Description TEXT,
@@ -54,8 +56,9 @@ namespace WebHook.API.Data
 
                 conn.Execute(@"CREATE TABLE IF NOT EXISTS Features (
                     FeatureId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    FeatureCardId INTEGER,
                     ProjectId INTEGER NOT NULL,
-                    CardId TEXT,
+                    TrelloCardId TEXT,
                     Aliases TEXT,
                     Name TEXT,
                     Description TEXT,
@@ -63,9 +66,10 @@ namespace WebHook.API.Data
 
                 conn.Execute(@"CREATE TABLE IF NOT EXISTS Tasks (
                     TaskId INTEGER PRIMARY KEY AUTOINCREMENT,
+                    TaskCardId INTEGER, 
                     FeatureId INTEGER,
                     ProjectId INTEGER,
-                    CardId TEXT,
+                    TrelloCardId TEXT,
                     Name TEXT,
                     Description TEXT,
                     Link TEXT);");

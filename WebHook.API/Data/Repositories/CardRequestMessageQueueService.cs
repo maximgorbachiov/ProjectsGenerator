@@ -1,8 +1,7 @@
 using Dapper;
 using WebHook.API.Models;
-using WebHook.API.Data;
 
-namespace WebHook.API.Services
+namespace WebHook.API.Data.Repositories
 {
     // SQLite-backed queue: writes a record to CardRequestMessageQueue table.
     public class CardRequestMessageQueueService

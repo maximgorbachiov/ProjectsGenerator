@@ -7,7 +7,8 @@ namespace WebHook.API.Models
     {
         [Key]
         public int ProjectId { get; set; }
-        public string? CardId { get; set; }
+        public int ProjectCardId { get; set; }
+        public string? TrelloCardId { get; set; }
         public string? Name { get; set; }
         public string? Aliases { get; set; }
         public string? Description { get; set; }

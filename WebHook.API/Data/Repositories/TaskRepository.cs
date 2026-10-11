@@ -11,25 +11,32 @@ namespace WebHook.API.Data.Repositories
 
         private SqliteConnection CreateConnection() => _ctx.CreateConnection();
 
-        public async Task<TaskEntity?> GetByCardIdAsync(string cardId)
+        public async Task<TaskEntity?> GetByTaskCardIdAsync(int taskCardId)
         {
             using var conn = CreateConnection();
             await conn.OpenAsync();
-            return await conn.QueryFirstOrDefaultAsync<TaskEntity>("SELECT * FROM Tasks WHERE CardId = @cardId", new { cardId });
+            return await conn.QueryFirstOrDefaultAsync<TaskEntity>("SELECT TOP(1) * FROM Tasks WHERE TaskCardId = @taskCardId", new { taskCardId });
+        }
+
+        public async Task<TaskEntity?> GetByTrelloCardIdAsync(string trelloCardId)
+        {
+            using var conn = CreateConnection();
+            await conn.OpenAsync();
+            return await conn.QueryFirstOrDefaultAsync<TaskEntity>("SELECT TOP(1) * FROM Tasks WHERE TrelloCardId = @trelloCardId", new { trelloCardId });
         }
 
         public async Task<TaskEntity?> GetByIdAsync(int id)
         {
             using var conn = CreateConnection();
             await conn.OpenAsync();
-            return await conn.QueryFirstOrDefaultAsync<TaskEntity>("SELECT * FROM Tasks WHERE TaskId = @id", new { id });
+            return await conn.QueryFirstOrDefaultAsync<TaskEntity>("SELECT TOP(1) * FROM Tasks WHERE TaskId = @id", new { id });
         }
 
         public async Task AddAsync(TaskEntity entity)
         {
             using var conn = CreateConnection();
             await conn.OpenAsync();
-            var sql = "INSERT INTO Tasks (FeatureId, ProjectId, CardId, Name, Description, Link) VALUES (@FeatureId, @ProjectId, @CardId, @Name, @Description, @Link); SELECT last_insert_rowid();";
+            var sql = "INSERT INTO Tasks (FeatureId, ProjectId, TaskCardId, TrelloCardId, Name, Description, Link) VALUES (@FeatureId, @ProjectId, @TaskCardId, @TrelloCardId, @Name, @Description, @Link); SELECT last_insert_rowid();";
             var id = await conn.ExecuteScalarAsync<long>(sql, entity);
             entity.TaskId = (int)id;
         }
@@ -38,7 +45,7 @@ namespace WebHook.API.Data.Repositories
         {
             using var conn = CreateConnection();
             await conn.OpenAsync();
-            var sql = "UPDATE Tasks SET FeatureId=@FeatureId, ProjectId=@ProjectId, CardId=@CardId, Name=@Name, Description=@Description, Link=@Link WHERE TaskId=@TaskId";
+            var sql = "UPDATE Tasks SET Name=@Name, Description=@Description, Link=@Link WHERE TaskId=@TaskId";
             await conn.ExecuteAsync(sql, entity);
         }
     }
